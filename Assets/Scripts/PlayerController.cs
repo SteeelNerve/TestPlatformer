@@ -10,19 +10,16 @@ public class PlayerController : MonoBehaviour
     // init variables
     private Rigidbody2D rb;
     private Animator anim;
-    private Collider2D coll;
-
-    
+    private Collider2D coll; 
 
     // FSM
     private enum State {idle, running, jumping, falling, hurt}
     private State state = State.idle;
-    
 
     // inspector variables
     [SerializeField] private LayerMask ground;
     [SerializeField] private float speed = 5f;
-    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private float jumpForce = 13f;
     [SerializeField] private int cherries = 0;
     [SerializeField] private TextMeshProUGUI cherryText;
     [SerializeField] private float hurtForce = 10f;
@@ -60,11 +57,13 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+
         if(collision.gameObject.tag == "Enemy")
         {
             if(state == State.falling)
             {
-                Destroy(collision.gameObject);
+                enemy.JumpedOn();
                 Jump();
             }
             else 
@@ -134,7 +133,7 @@ public class PlayerController : MonoBehaviour
                 state = State.idle;
             }
         }
-        else if(Mathf.Abs(rb.velocity.x) > 2f)
+        else if(Mathf.Abs(rb.velocity.x) > .1f)
         {
             state = State.running;
         }
