@@ -10,7 +10,7 @@ public class PlayerController : MonoBehaviour
     // init variables
     private Rigidbody2D rb;
     private Animator anim;
-    private Collider2D coll; 
+    private Collider2D coll;
 
     // FSM
     private enum State {idle, running, jumping, falling, hurt}
@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private int cherries = 0;
     [SerializeField] private TextMeshProUGUI cherryText;
     [SerializeField] private float hurtForce = 10f;
+    [SerializeField] private AudioSource cherry;
 
     // Start is called before the first frame update
     void Start()
@@ -49,6 +50,7 @@ public class PlayerController : MonoBehaviour
     {
         if(collision.tag == "Collectable")
         {
+            cherry.Play();
             Destroy(collision.gameObject);
             cherries += 1;
             cherryText.text = "Cherries: " + cherries.ToString();
