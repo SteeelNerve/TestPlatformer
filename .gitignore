@@ -12,6 +12,15 @@
 sysinfo.txt
 # Unity3D generated meta files
 *.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# MemoryCaptures can get excessive in size.
+# They also could contain extremely sensitive data
+[Mm]emoryCaptures/
+
+# Visual Studio cache directory
+.vs/
 
 ###
 # VS/MD solution and project files
