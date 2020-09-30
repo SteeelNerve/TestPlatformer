@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         coll = GetComponent<Collider2D>();
-        cherryText.text = "Cherries: " + cherries.ToString();
+        cherryText.text = "X " + cherries.ToString();
     }
         
     // Update is called once per frame
@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
             cherry.Play();
             Destroy(collision.gameObject);
             cherries += 1;
-            cherryText.text = "Cherries: " + cherries.ToString();
+            cherryText.text = "X " + cherries.ToString();
         }
     }
 
