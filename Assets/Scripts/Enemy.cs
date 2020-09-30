@@ -19,6 +19,8 @@ public class Enemy : MonoBehaviour
         anim.SetTrigger("Death");
         death.Play();
         rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        GetComponent<Collider2D>().enabled = false;
     }
 
     private void Death()

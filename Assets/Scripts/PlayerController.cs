@@ -100,9 +100,13 @@ public class PlayerController : MonoBehaviour
             transform.localScale = new Vector2(1, 1);
         }
         // jumping
-        if (Input.GetButtonDown("Jump") && coll.IsTouchingLayers(ground))
+        if (Input.GetButtonDown("Jump"))
         {
-            Jump();
+            RaycastHit2D hit = Physics2D.Raycast(rb.position, Vector2.down, 1.3f, ground);
+            if (hit.collider != null)
+            {
+                Jump();
+            }    
         }
     }
 
