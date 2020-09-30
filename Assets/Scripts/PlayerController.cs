@@ -13,18 +13,27 @@ public class PlayerController : MonoBehaviour
     private Collider2D coll;
 
     // FSM
-    private enum State {idle, running, jumping, falling, hurt}
+    private enum State { idle, running, jumping, falling, hurt }
     private State state = State.idle;
 
     // inspector variables
     [SerializeField] private LayerMask ground;
     [SerializeField] private float speed = 5f;
-    [SerializeField] private float jumpForce = 13f;
+    [SerializeField] private float jumpForce = 10f;
     [SerializeField] private int cherries = 0;
     [SerializeField] private TextMeshProUGUI cherryText;
     [SerializeField] private float hurtForce = 10f;
     [SerializeField] private AudioSource cherry;
+    [SerializeField] private int countdownTimePowerUp = 10;
+    private int countdownTimePowerUpCache;
+    private bool countdownHasStarted = false;
+    private Coroutine coroutine;
+    [SerializeField] private TextMeshProUGUI countdownText;
 
+    private void Awake()
+    {
+        countdownText.gameObject.SetActive(false);
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -32,28 +41,38 @@ public class PlayerController : MonoBehaviour
         anim = GetComponent<Animator>();
         coll = GetComponent<Collider2D>();
         cherryText.text = "X " + cherries.ToString();
+        countdownTimePowerUpCache = countdownTimePowerUp;
+        countdownText.text = "";
     }
-        
+
     // Update is called once per frame
     void Update()
     {
-        if(state != State.hurt)
+        if (state != State.hurt)
         {
             Movement();
         }
-        
+
         AnimationState();
         anim.SetInteger("state", (int)state); // setup animation
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.tag == "Collectable")
+        if (collision.tag == "Collectable")
         {
             cherry.Play();
             Destroy(collision.gameObject);
             cherries += 1;
             cherryText.text = "X " + cherries.ToString();
+        }
+        if (collision.tag == "Powerup")
+        {
+            cherry.Play();
+            jumpForce = 17f;
+            GetComponent<SpriteRenderer>().color = Color.yellow;
+            Destroy(collision.gameObject);
+            PowerUpStart();
         }
     }
 
@@ -61,17 +80,17 @@ public class PlayerController : MonoBehaviour
     {
         Enemy enemy = collision.gameObject.GetComponent<Enemy>();
 
-        if(collision.gameObject.tag == "Enemy")
+        if (collision.gameObject.tag == "Enemy")
         {
-            if(state == State.falling)
+            if (state == State.falling)
             {
                 enemy.JumpedOn();
                 Jump();
             }
-            else 
+            else
             {
                 state = State.hurt;
-                if(collision.gameObject.transform.position.x > transform.position.x)
+                if (collision.gameObject.transform.position.x > transform.position.x)
                 {
                     // enemy is right, take damage and kick left
                     rb.velocity = new Vector2(-hurtForce, rb.velocity.y);
@@ -106,7 +125,7 @@ public class PlayerController : MonoBehaviour
             if (hit.collider != null)
             {
                 Jump();
-            }    
+            }
         }
     }
 
@@ -118,14 +137,14 @@ public class PlayerController : MonoBehaviour
 
     private void AnimationState()
     {
-        if(state == State.jumping)
+        if (state == State.jumping)
         {
-            if(rb.velocity.y < .1f)
+            if (rb.velocity.y < .1f)
             {
                 state = State.falling;
             }
         }
-        else if(state == State.falling)
+        else if (state == State.falling)
         {
             if (coll.IsTouchingLayers(ground))
             {
@@ -134,12 +153,12 @@ public class PlayerController : MonoBehaviour
         }
         else if (state == State.hurt)
         {
-            if(Mathf.Abs(rb.velocity.x) < .1f)
+            if (Mathf.Abs(rb.velocity.x) < .1f)
             {
                 state = State.idle;
             }
         }
-        else if(Mathf.Abs(rb.velocity.x) > .1f)
+        else if (Mathf.Abs(rb.velocity.x) > .1f)
         {
             state = State.running;
         }
@@ -148,5 +167,36 @@ public class PlayerController : MonoBehaviour
             state = State.idle;
         }
     }
+
+    private void PowerUpStart()
+    {
+        if (!countdownHasStarted)
+        {
+            StartCoroutine(PowerTimer());
+        }
+        else
+        {
+            countdownTimePowerUp = countdownTimePowerUpCache + 1;
+        }
+    }
+
+    private IEnumerator PowerTimer()
+    {
+        countdownHasStarted = true;
+        countdownText.gameObject.SetActive(true);
+        while (countdownTimePowerUp > 0)
+        {
+            countdownText.text = "POWER " + countdownTimePowerUp.ToString() + " s";
+            yield return new WaitForSeconds(1f);
+
+            countdownTimePowerUp--;
+        }
+        jumpForce = 10f;
+        GetComponent<SpriteRenderer>().color = Color.white;
+        countdownHasStarted = false;
+        countdownText.gameObject.SetActive(false);
+        countdownTimePowerUp = countdownTimePowerUpCache;
+    }
 }
+
 
