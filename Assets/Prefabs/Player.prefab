@@ -106,7 +106,7 @@ Rigidbody2D:
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &8192901462772202725
 BoxCollider2D:
@@ -151,10 +151,10 @@ MonoBehaviour:
     m_Bits: 256
   speed: 5
   jumpForce: 10
-  cherries: 0
-  cherryText: {fileID: 0}
   hurtForce: 10
+  countdownTimePowerUp: 0
   cherry: {fileID: 1963865968}
+  countdownText: {fileID: 0}
 --- !u!95 &8192901462772202723
 Animator:
   serializedVersion: 3

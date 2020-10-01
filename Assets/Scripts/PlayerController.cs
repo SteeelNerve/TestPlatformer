@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -20,29 +22,27 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask ground;
     [SerializeField] private float speed = 5f;
     [SerializeField] private float jumpForce = 10f;
-    [SerializeField] private int cherries = 0;
-    [SerializeField] private TextMeshProUGUI cherryText;
     [SerializeField] private float hurtForce = 10f;
+    private int countdownTimePowerUp = 10;
     [SerializeField] private AudioSource cherry;
-    [SerializeField] private int countdownTimePowerUp = 10;
+    [SerializeField] private TextMeshProUGUI countdownText;
     private int countdownTimePowerUpCache;
     private bool countdownHasStarted = false;
-    private Coroutine coroutine;
-    [SerializeField] private TextMeshProUGUI countdownText;
+    //private Coroutine coroutine;
 
     private void Awake()
     {
         countdownText.gameObject.SetActive(false);
     }
+
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         coll = GetComponent<Collider2D>();
-        cherryText.text = "X " + cherries.ToString();
-        countdownTimePowerUpCache = countdownTimePowerUp;
         countdownText.text = "";
+        countdownTimePowerUpCache = countdownTimePowerUp;
     }
 
     // Update is called once per frame
@@ -63,8 +63,8 @@ public class PlayerController : MonoBehaviour
         {
             cherry.Play();
             Destroy(collision.gameObject);
-            cherries += 1;
-            cherryText.text = "X " + cherries.ToString();
+            PermanentUI.perm.cherries += 1;
+            PermanentUI.perm.cherryText.text = "X " + PermanentUI.perm.cherries.ToString();
         }
         if (collision.tag == "Powerup")
         {
@@ -90,6 +90,7 @@ public class PlayerController : MonoBehaviour
             else
             {
                 state = State.hurt;
+                HandleHealth();
                 if (collision.gameObject.transform.position.x > transform.position.x)
                 {
                     // enemy is right, take damage and kick left
@@ -100,6 +101,16 @@ public class PlayerController : MonoBehaviour
                     rb.velocity = new Vector2(hurtForce, rb.velocity.y);
                 }
             }
+        }
+    }
+
+    private void HandleHealth()
+    {
+        PermanentUI.perm.health -= 1;
+        PermanentUI.perm.healthAmount.text = "Health " + PermanentUI.perm.health.ToString();
+        if (PermanentUI.perm.health <= 0)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 
@@ -182,6 +193,7 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator PowerTimer()
     {
+        Debug.Log(countdownHasStarted);
         countdownHasStarted = true;
         countdownText.gameObject.SetActive(true);
         while (countdownTimePowerUp > 0)
