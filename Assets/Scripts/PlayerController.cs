@@ -15,8 +15,16 @@ public class PlayerController : MonoBehaviour
     private Collider2D coll;
 
     // FSM
-    private enum State { idle, running, jumping, falling, hurt }
+    private enum State { idle, running, jumping, falling, hurt, climb }
     private State state = State.idle;
+
+    // ladder
+    [HideInInspector] public bool canClimb = false;
+    [HideInInspector] public bool bottomLadder = false;
+    [HideInInspector] public bool topLadder = false;
+    public Ladder ladder;
+    private float naturalGravity;
+    [SerializeField] float climbSpeed = 3f;
 
     // inspector variables
     [SerializeField] private LayerMask ground;
@@ -43,12 +51,17 @@ public class PlayerController : MonoBehaviour
         coll = GetComponent<Collider2D>();
         countdownText.text = "";
         countdownTimePowerUpCache = countdownTimePowerUp;
+        naturalGravity = rb.gravityScale;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (state != State.hurt)
+        if(state == State.climb)
+        {
+            Climb();
+        }
+        else if (state != State.hurt)
         {
             Movement();
         }
@@ -117,6 +130,15 @@ public class PlayerController : MonoBehaviour
     private void Movement()
     {
         float hDirection = (Input.GetAxis("Horizontal"));
+
+        if(canClimb && Mathf.Abs(Input.GetAxis("Vertical")) > .1f)
+        {
+            state = State.climb;
+            rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
+            transform.position = new Vector3(ladder.transform.position.x, rb.position.y);
+            rb.gravityScale = 0f;
+        }
+
         // moving left
         if (hDirection < 0)
         {
@@ -137,6 +159,11 @@ public class PlayerController : MonoBehaviour
             {
                 Jump();
             }
+            /*if (Input.GetButtonDown("Jump") && coll.IsTouchingLayers(ground))
+            {
+                Jump();
+            }*/
+          
         }
     }
 
@@ -147,8 +174,12 @@ public class PlayerController : MonoBehaviour
     }
 
     private void AnimationState()
-    {
-        if (state == State.jumping)
+    {   
+        if(state == State.climb)
+        {
+
+        }
+        else if (state == State.jumping)
         {
             if (rb.velocity.y < .1f)
             {
@@ -208,6 +239,60 @@ public class PlayerController : MonoBehaviour
         countdownHasStarted = false;
         countdownText.gameObject.SetActive(false);
         countdownTimePowerUp = countdownTimePowerUpCache;
+    }
+
+    private void Climb()
+    {
+        float vDirection = Input.GetAxis("Vertical");
+        float hDirection = Input.GetAxis("Horizontal");
+
+  
+
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            canClimb = false;
+            rb.gravityScale = naturalGravity;
+            anim.speed = 1f;
+            Jump();
+            return;
+        }
+
+        // climbing up
+        if(vDirection > .1f && !topLadder)
+        {
+            rb.velocity = new Vector2(0f, vDirection * climbSpeed);
+            anim.speed = 1f;
+        }
+        // climbing down
+        else if (vDirection < -.1f && !bottomLadder)
+        {
+            rb.velocity = new Vector2(0f, vDirection * climbSpeed);
+            anim.speed = 1f;
+        }
+        else if (vDirection < -.1f && bottomLadder)
+        {
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            rb.gravityScale = naturalGravity;
+            canClimb = false;
+            anim.speed = 1f;
+            state = State.idle;
+        }
+        
+        else if (vDirection == 0 && hDirection == 0)
+        {
+            anim.speed = 0f;
+            rb.velocity = Vector2.zero;
+        }
+        
+        // do nothing
+        else
+        {
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            canClimb = false;
+            rb.velocity = Vector2.zero;
+        }
     }
 }
 
